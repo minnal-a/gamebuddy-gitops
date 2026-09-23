@@ -1,0 +1,21 @@
+# Local cluster: kind create cluster --config k8s/kind-config.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: gamebuddy
+nodes:
+  - role: control-plane
+    # Ready for the ingress controller (next phase): label the node and map
+    # host ports 80/443 into it so http://localhost reaches the ingress.
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP

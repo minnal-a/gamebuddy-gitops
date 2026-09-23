@@ -1,0 +1,15 @@
+# Environment-agnostic GameBuddy resources. Not applied directly: an overlay
+# adds secrets, public URLs and image tags (see overlays/).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - postgres-init-configmap.yaml
+  - postgres-pvc.yaml
+  - postgres-service.yaml
+  - postgres-statefulset.yaml
+  - backend-service.yaml
+  - backend-deployment.yaml
+  - frontend-service.yaml
+  - frontend-deployment.yaml

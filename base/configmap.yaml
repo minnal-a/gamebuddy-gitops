@@ -1,0 +1,18 @@
+# Non-secret configuration shared by the backend and Postgres.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gamebuddy-config
+  namespace: gamebuddy
+  labels:
+    app.kubernetes.io/part-of: gamebuddy
+data:
+  POSTGRES_DB: gamebuddy
+  POSTGRES_USER: gamebuddy
+  DATABASE_HOST: postgres
+  DATABASE_SSL: "false"
+  NODE_ENV: production
+  PORT: "3001"
+  CHAT_PORT: "4000"
+  # API_URL and FRONTEND_URL (what the browser sees) differ per
+  # environment, so each overlay sets them.

@@ -1,0 +1,16 @@
+# Storage for the Postgres data directory. No storageClassName, so the
+# cluster default is used (kind ships the "standard" local-path class).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: gamebuddy
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: gamebuddy
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

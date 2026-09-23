@@ -1,0 +1,10 @@
+# Browser-facing URLs for the local kind cluster reached via port-forward
+# (see README). Must match the URLs baked into the frontend image.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gamebuddy-config
+  namespace: gamebuddy
+data:
+  API_URL: http://localhost:3001
+  FRONTEND_URL: http://localhost:3000
