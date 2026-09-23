@@ -12,6 +12,8 @@ patches:
 # scripts/kind-up.sh instead.
 images:
   - name: gamebuddy-backend
-    newTag: local
+    newTag: 078d2426fd26e6129c9b143adcbb5d2f5ac6eda1
+    newName: ghcr.io/minnal-a/gamebuddy-backend
   - name: gamebuddy-frontend
-    newTag: local
+    newTag: 078d2426fd26e6129c9b143adcbb5d2f5ac6eda1
+    newName: ghcr.io/minnal-a/gamebuddy-frontend
