@@ -7,8 +7,9 @@ resources:
   - backend-secret.yaml
 patches:
   - path: configmap-urls.yaml
-# Images built locally and loaded into kind (scripts/load-images.sh).
-# CI will bump these tags once images are pushed to a registry.
+# CI in minnal-a/gamebud sets these to ghcr.io/minnal-a/gamebuddy-*:<commit SHA>
+# on every push to main. "local" means images built and loaded by
+# scripts/kind-up.sh instead.
 images:
   - name: gamebuddy-backend
     newTag: local

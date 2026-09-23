@@ -42,6 +42,19 @@ Apply manifest changes only: `kubectl apply -k overlays/local`
 Preview what an overlay renders: `kubectl kustomize overlays/local`
 Tear down: `kind delete cluster --name gamebuddy`
 
+## How a deploy happens
+
+1. A push to `main` in the app repo runs its CI workflow: tests, then builds
+   `ghcr.io/minnal-a/gamebuddy-backend` and `-frontend` tagged with the commit SHA.
+2. The last CI step commits here, setting `images:` in
+   `overlays/local/kustomization.yaml` to that SHA
+   (commit message `Deploy minnal-a/gamebud@<sha>`).
+3. Whatever applies this repo (Argo CD, or `kubectl apply -k overlays/local`)
+   rolls the Deployments to the new images.
+
+The GHCR packages must be public for the cluster to pull them without
+credentials.
+
 ## base/ vs overlays/
 
 | | base/ | overlays/local/ |
@@ -50,7 +63,7 @@ Tear down: `kind delete cluster --name gamebuddy`
 | Shared config (ports, DB name, NODE_ENV) | `configmap.yaml` | |
 | Browser-facing URLs | | `configmap-urls.yaml` (patch) |
 | Secrets (DB password, JWT secret) | | local dev values only |
-| Image tags | untagged | `images:` sets `:local` |
+| Image tags | untagged | `images:` set by CI to the commit SHA |
 
 A new environment (e.g. `overlays/prod`) reuses `base/` and supplies its own
 URLs, secrets (from a secret manager, not git) and image tags.

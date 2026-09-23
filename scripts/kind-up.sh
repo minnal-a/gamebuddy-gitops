@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Local end-to-end: create the kind cluster (if needed), build the images from
-# the app repo, load them into kind, and apply overlays/local. Safe to re-run.
+# Local end-to-end: create the kind cluster (if needed), apply overlays/local
+# and wait for it. Safe to re-run.
 #
 #   ./scripts/kind-up.sh ../gamebud        # path to the app repo checkout
 #
-# Building/loading images stands in for CI + a registry until the next phase;
-# once Argo CD is installed it takes over the "apply" step.
+# Images: once CI has set the overlay's tags to ghcr.io/...:<sha>, the cluster
+# pulls them from GHCR. While the overlay still says newTag: local, this
+# script builds the images from the app repo and loads them into kind.
 set -euo pipefail
 
 GITOPS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -25,8 +26,6 @@ if ! kind get clusters | grep -qx "$CLUSTER"; then
 fi
 kubectl config use-context "kind-$CLUSTER" >/dev/null
 
-docker build -t gamebuddy-backend:local "$APP/Backend"
-docker build -t gamebuddy-frontend:local "$APP/Frontend"
 
 # Copy a locally built image into the kind node. Not `kind load docker-image`:
 # it imports --all-platforms, which fails ("content digest ... not found")
@@ -38,8 +37,14 @@ load_image() {
   docker save "$1" | docker exec -i "$CLUSTER-control-plane" \
     ctr --namespace=k8s.io images import --digests --snapshotter=overlayfs -
 }
-load_image gamebuddy-backend:local
-load_image gamebuddy-frontend:local
+if grep -q 'newTag: local' "$GITOPS/overlays/local/kustomization.yaml"; then
+  docker build -t gamebuddy-backend:local "$APP/Backend"
+  docker build -t gamebuddy-frontend:local "$APP/Frontend"
+  load_image gamebuddy-backend:local
+  load_image gamebuddy-frontend:local
+else
+  echo "Overlay uses CI-built images from ghcr.io; skipping local build."
+fi
 
 kubectl apply -k "$GITOPS/overlays/local"
 
@@ -53,7 +58,7 @@ else
   echo "No STEAM_API_KEY set: the app runs, Steam login returns 503."
 fi
 
-# Images are tagged :local, so a rebuild needs a restart to be picked up
+# Restart so pods pick up a rebuilt :local image or a re-patched Steam key
 kubectl -n "$NS" rollout restart deployment/backend deployment/frontend
 kubectl -n "$NS" rollout status statefulset/postgres --timeout=180s
 kubectl -n "$NS" rollout status deployment/backend --timeout=180s
