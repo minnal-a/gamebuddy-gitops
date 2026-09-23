@@ -1,0 +1,21 @@
+# Tells Argo CD to keep the cluster in sync with overlays/local on main.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gamebuddy
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/minnal-a/gamebuddy-gitops.git
+    targetRevision: main
+    path: overlays/local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gamebuddy
+  syncPolicy:
+    automated:
+      prune: true      # delete resources removed from git
+      selfHeal: true   # undo manual changes made with kubectl
+    syncOptions:
+      - CreateNamespace=true

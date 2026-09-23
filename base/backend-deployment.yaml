@@ -50,6 +50,12 @@ spec:
             # $(VAR) references are expanded by Kubernetes from the vars above
             - name: DATABASE_URL
               value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(DATABASE_HOST):5432/$(POSTGRES_DB)
+            # Real key lives only in the cluster (created by scripts/bootstrap.sh
+            # from your .env), never in git, so Argo CD neither stores nor
+            # reverts it. Optional: without it, Steam login returns 503.
+            - name: STEAM_API_KEY
+              valueFrom:
+                secretKeyRef: { name: steam-api-key, key: STEAM_API_KEY, optional: true }
           readinessProbe:
             tcpSocket: { port: api }
             periodSeconds: 5

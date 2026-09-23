@@ -1,0 +1,28 @@
+# Argo CD, pinned to a release, with two local-demo tweaks.
+# Installed by scripts/bootstrap.sh:
+#   kubectl apply -k argocd/install --server-side --force-conflicts
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+resources:
+  - namespace.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml
+patches:
+  # Poll git every 60s instead of the default 180s, so a CI commit shows up
+  # quickly in a demo (no webhook: the local cluster isn't reachable from GitHub)
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cm
+      data:
+        timeout.reconciliation: 60s
+  # Serve the UI over plain HTTP behind `kubectl port-forward`, avoiding the
+  # self-signed certificate warning. Local only.
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cmd-params-cm
+      data:
+        server.insecure: "true"
